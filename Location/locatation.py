@@ -344,10 +344,13 @@ if __name__ == '__main__':
 	locator = CarLocator()
 	plate_imgs, plate_colors = locator.locate("./dataset/Blue/1.jpg")
 
-	for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
-		print(f"车牌颜色：{plate_color}")
-		if plate_img is not None:
-			cv2.imshow(f"plate_{index}", plate_img)
-	
+	if plate_imgs == [] or plate_colors == []:
+		print("未检测到车牌，请检查输入图片！")
+	else:
+		for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
+			print(f"车牌颜色：{plate_color}")
+			if plate_img is not None:
+				cv2.imshow(f"plate_{index}", plate_img)
+		
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
