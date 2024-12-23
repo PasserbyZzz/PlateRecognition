@@ -116,7 +116,9 @@ class CarLocator:
 			img = cv2.resize(img, (int(pic_width * resize_rate), int(pic_height * resize_rate)), interpolation=cv2.INTER_LANCZOS4)
 			pic_height, pic_width = img.shape[:2]
 			
-		print(f"height: {pic_height}, width: {pic_width}")
+		# print(f"height: {pic_height}, width: {pic_width}")
+
+		# cv2.imwrite('./figures/img_raw.png', img)
 
 		# Step2: 图像预处理
 		blur = self.cfg["blur"]
@@ -128,16 +130,22 @@ class CarLocator:
 		old_img = img
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+		# cv2.imwrite('./figures/img_gauss_gray.png', img)
+
 		# 去掉图像中不会是车牌的区域
 		kernel = np.ones((20, 20), np.uint8)
 		# 开运算，去除图片中不相关的小物体
 		img_opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
-		# 加权叠加，增强车牌区域的对比度
+		# 加权叠加，将两幅图像合成为一幅图像，增强车牌区域的对比度
 		img_opening = cv2.addWeighted(img, 1, img_opening, -1, 0) 
+
+		# cv2.imwrite('./figures/img_opening.png', img_opening)
 
 		# Step3: 边缘检测
 		ret, img_thresh = cv2.threshold(img_opening, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # 二值化
-		img_edge = cv2.Canny(img_thresh, 100, 200) # Canny边缘检测
+		img_edge = cv2.Canny(img_thresh, 100, 250) # Canny边缘检测
+
+		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
 		# 使用闭运算和开运算让图像边缘成为一个整体
 		kernel = np.ones((self.cfg["morphologyr"], self.cfg["morphologyc"]), np.uint8)
@@ -145,6 +153,8 @@ class CarLocator:
 		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
 		# 开运算，消除边缘区域中的小噪声
 		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
+
+		# cv2.imwrite('./figures/img_edge_close_open.png', img_edge2)
 
 		# Step4: 轮廓检测
 		# 查找图像边缘整体形成的矩形区域，可能有很多，车牌就在其中一个矩形区域中
@@ -162,7 +172,7 @@ class CarLocator:
 		# 通过面积过滤掉小的轮廓
 		contours = [cnt for cnt in contours if cv2.contourArea(cnt) > Min_Area]
 
-		print(f"轮廓数量: {len(contours)}")
+		# print(f"轮廓数量: {len(contours)}")
 
 		# Step5: 矩形筛选
 		# 一一排除不是车牌的矩形区域
@@ -183,9 +193,9 @@ class CarLocator:
 				#cv2.imshow("edge4", old_img)
 				#cv2.waitKey(0)
 
-		print(f"矩形车牌数量: {len(car_contours)}")
+		# print(f"矩形车牌数量: {len(car_contours)}")
 
-		print("精确定位车牌")
+		# print("精确定位车牌")
 
 		# Step6: 精确定位车牌
 		card_imgs = []
@@ -270,23 +280,20 @@ class CarLocator:
 						blue += 1
 			
 			# 比较颜色统计结果，根据最多的像素颜色决定区域是否为车牌
-			color = "no"
+			color = "None"
 			limit1 = limit2 = 0
 
 			if green * 2 >= card_img_count:
-				color = "green"
+				color = "绿色"
 				limit1 = 35
 				limit2 = 99
 			elif blue * 2 >= card_img_count:
-				color = "blue"
+				color = "蓝色"
 				limit1 = 100
 				limit2 = 124 # 有的图片有色偏偏紫
 
-			print(f"车牌颜色: {color}")
+			# print(f"车牌颜色: {color}")
 			colors.append(color)
-			#print(blue, green, yello, black, white, card_img_count)
-			#cv2.imshow("color", card_img)
-			#cv2.waitKey(0)
 
 			if limit1 == 0:
 				continue
@@ -305,7 +312,8 @@ class CarLocator:
 				xl = 0
 				xr = col_num
 				need_accurate = True
-			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
+			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "绿色" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
+			
 			# 可能x或y方向未缩小，需要再试一次
 			if need_accurate: 
 				card_img = card_imgs[card_index]
@@ -319,12 +327,12 @@ class CarLocator:
 				if xl >= xr:
 					xl = 0
 					xr = col_num
-			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
+			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "绿色" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
     
 		# 筛选出颜色为蓝色或者绿色的车牌
 		plate_imgs, plate_colors = [], []
 		for color, card_img in zip(colors, card_imgs):
-			if color in ("blue", "green"):
+			if color in ("蓝色", "绿色"):
 				plate_imgs.append(card_img)
 				plate_colors.append(color)
 
@@ -334,10 +342,10 @@ class CarLocator:
 # 测试开始
 if __name__ == '__main__':
 	locator = CarLocator()
-	plate_imgs, plate_colors = locator.locate("./dataset/Green/5.jpg")
+	plate_imgs, plate_colors = locator.locate("./dataset/Blue/1.jpg")
 
 	for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
-		print(plate_color)
+		print(f"车牌颜色：{plate_color}")
 		if plate_img is not None:
 			cv2.imshow(f"plate_{index}", plate_img)
 	
