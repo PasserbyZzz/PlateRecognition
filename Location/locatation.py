@@ -48,18 +48,8 @@ def find_waves(threshold, histogram):
     if is_peak and up_point != -1 and i - up_point > 4:
         wave_peaks.append((up_point, i))
 
-    #将间隔较小的两个峰合起来，防止左右结构的汉字被分割
-    for i in range(len(wave_peaks)-2):
-        if wave_peaks[i+1][0] - wave_peaks[i][1] <15:
-            new = (wave_peaks[i][0],wave_peaks[i+1][1])
-            del wave_peaks[i]
-            del wave_peaks[i]
-            wave_peaks.insert(i,new)
-
-    #较小的峰去掉
-    for i in wave_peaks:
-        if i[1]-i[0]< 15:
-            wave_peaks.remove(i)
+    if wave_peaks[0][0] / wave_peaks[-1][1] < 0.01:
+        wave_peaks.remove(wave_peaks[0])
     
     return wave_peaks
 	
@@ -281,8 +271,8 @@ class PlatesLocator:
 				point_limit(left_point)
 				card_img = dst[int(left_point[1]):int(heigth_point[1]), int(left_point[0]):int(new_right_point[0])]
 				card_imgs.append(card_img)
-				#cv2.imshow("card", card_img)
-				#cv2.waitKey(0)
+				# cv2.imshow("card", card_img)
+				# cv2.waitKey(0)
 
 			# 负角度
 			elif left_point[1] > right_point[1]:
@@ -296,8 +286,8 @@ class PlatesLocator:
 				point_limit(new_left_point)
 				card_img = dst[int(right_point[1]):int(heigth_point[1]), int(new_left_point[0]):int(right_point[0])]
 				card_imgs.append(card_img)
-				#cv2.imshow("card", card_img)
-				#cv2.waitKey(0)
+				# cv2.imshow("card", card_img)
+				# cv2.waitKey(0)
 
 		# Step7: 确定车牌颜色
 		# 开始使用颜色定位，排除不是车牌的矩形，目前只识别蓝、绿车牌
@@ -325,15 +315,15 @@ class PlatesLocator:
 						blue += 1
 			
 			# 比较颜色统计结果，根据最多的像素颜色决定区域是否为车牌
-			color = "None"
+			color = "none"
 			limit1 = limit2 = 0
 
 			if green * 2 >= card_img_count:
-				color = "绿色"
+				color = "green"
 				limit1 = 35
 				limit2 = 99
 			elif blue * 2 >= card_img_count:
-				color = "蓝色"
+				color = "blue"
 				limit1 = 100
 				limit2 = 124 # 有的图片有色偏偏紫
 
@@ -357,7 +347,7 @@ class PlatesLocator:
 				xl = 0
 				xr = col_num
 				need_accurate = True
-			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "绿色" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
+			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
 			
 			# 可能x或y方向未缩小，需要再试一次
 			if need_accurate: 
@@ -372,43 +362,44 @@ class PlatesLocator:
 				if xl >= xr:
 					xl = 0
 					xr = col_num
-			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "绿色" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
+			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
     
 		# 筛选出颜色为蓝色或者绿色的车牌
 		plate_imgs, plate_colors = [], []
 		for color, card_img in zip(colors, card_imgs):
-			if color in ("蓝色", "绿色"):
+			if color in ("blue", "green"):
 				plate_imgs.append(card_img)
 				plate_colors.append(color)
 
 		return plate_imgs, plate_colors
 	
-	def separate_characters(card_img, color="blue"):
+	def separate_characters(self, card_img, color="blue"):
 		'''
 		从车牌图像中分离字符
 		输入->card_img:切割好的方正的车牌照片; color:车牌颜色
 		输出->part_cards:
 		'''
+		# 读入灰度图像
 		gray_img = cv2.cvtColor(card_img, cv2.COLOR_BGR2GRAY)
 		# 绿车牌字符比背景暗，与蓝车牌刚好相反，所以绿车牌需要反向
-		if color == "绿色":
+		if color == "green":
 			gray_img = cv2.bitwise_not(gray_img)
 		_, gray_img = cv2.threshold(gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
 		# 查找垂直直方图波峰
 		row_num, col_num = gray_img.shape[:2]
-		# 去掉车牌上下边缘1个像素，避免白边影响阈值判断
-		gray_img = gray_img[3:row_num - 12]     #3,12可以根据效果改
+
+		gray_img = gray_img[int(row_num*0.02):row_num - int(row_num*0.02)]     # 3,12可以根据效果改
 		y_histogram = np.sum(gray_img, axis=0)
 		y_min = np.min(y_histogram)
 		y_average = np.sum(y_histogram) / y_histogram.shape[0]
-		y_threshold = (y_min + y_average) / 5  # 对于U和0等字符，阈值应偏小
+		y_threshold = (y_min + y_average) / 20  # 对于U和0等字符，阈值应偏小
 		
 		wave_peaks = find_waves(y_threshold, y_histogram)
-		print(wave_peaks)
+		# print(wave_peaks)
 
-		if len(wave_peaks) <= 6:
-			print("波峰数量过少，可能不是车牌")
+		if len(wave_peaks) <= 5:
+			print("无法进行字符分割，请尝试更换更清晰的照片！")
 			return []
 
 		# 判断是否是左侧车牌边缘
@@ -417,50 +408,61 @@ class PlatesLocator:
 
 		# 组合分离汉字（假设第一个字符是汉字）
 		if len(wave_peaks) > 2:
-			cur_dis = 0
+			start = wave_peaks[0][0]
 			for i, wave in enumerate(wave_peaks):
-				if wave[1] - wave[0] + cur_dis > (wave_peaks[-1][1] - wave_peaks[-1][0]) * 0.6:
+				if wave[1] - start > (wave_peaks[-1][1] - wave_peaks[-1][0]) * 0.7:
 					break
 				else:
-					cur_dis += wave[1] - wave[0]
+					continue
 			if i > 0:
 				wave = (wave_peaks[0][0], wave_peaks[i][1])
 				wave_peaks = wave_peaks[i + 1:]
 				wave_peaks.insert(0, wave)
 
-		# 去除车牌上的分隔点
-		if len(wave_peaks) > 2:
-			point = wave_peaks[2]
-			if point[1] - point[0] < (wave_peaks[-1][1] - wave_peaks[-1][0]) / 3:
-				point_img = gray_img[:, point[0]:point[1]]
-				if np.mean(point_img) < 255 / 5:
-					wave_peaks.pop(2)
+		lenlst = []
+		for i in wave_peaks:
+			lenlst.append(i[1]-i[0])
 
-		if len(wave_peaks) <= 6:
-			print("波峰数量过少，可能不是车牌")
+		wave_peaks_sorted = sorted(lenlst)
+		# print(wave_peaks_sorted)
+		width_max = wave_peaks_sorted[-1]
+		# print(width_max)
+
+		# 较小的峰去掉
+		for i in wave_peaks:
+			if i[1]-i[0] < width_max*0.3:
+				wave_peaks.remove(i)
+
+		if len(wave_peaks) <= 5:
+			print("无法进行字符分割，请尝试更换更清晰的照片！")
 			return []
 
 		part_cards = [gray_img[:, wave[0]:wave[1]] for wave in wave_peaks]
 
 		# 可视化分割结果（可选）
-		for idx, part_card in enumerate(part_cards):
-			cv2.imwrite(f'./character_{idx}.jpg', part_card)
+		# for idx, part_card in enumerate(part_cards):
+		# 	cv2.imwrite(f'./character_{idx}.jpg', part_card)
 
 		return part_cards
 	
-# 测试开始
+# 用法示例 README!!!
 if __name__ == '__main__':
+	# 创建对象
 	locator = PlatesLocator()
+	# 获取车牌图像列表和对应的车牌颜色列表
 	plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/6.jpg")
 
+	# 未成功裁剪车牌
 	if plate_imgs == [] or plate_colors == []:
-		print("未检测到车牌，请检查输入图片！")
+		print("未检测到车牌，请检查输入图片或尝试更换更清晰的照片！")
 	else:
 		for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
 			print(f"车牌颜色：{plate_color}")
 			if plate_img is not None:
-				cv2.imwrite("7.jpg", plate_img)
-	# 			cv2.imshow(f"plate_{index}", plate_img)
+				# 获取字符列表
+				characters = locator.separate_characters(plate_img, color=plate_color) 
+				# cv2.imwrite("./dataset/Plates/7.jpg", plate_img)
+				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
 	# cv2.destroyAllWindows()
