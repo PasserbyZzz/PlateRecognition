@@ -138,7 +138,43 @@ class PlatesLocator:
 		输出->plate_imgs:检测到的车牌区域的图像列表; plate_colors:车牌对应的颜色列表
 		'''
 		# Step1: 读取和调整图像
-		img = cv2.imread(car_pic)
+		if car_pic == "camera":
+			cap = cv2.VideoCapture(0)
+			if not cap.isOpened():
+				return 0, 0
+			
+			while True:
+				ret, frame = cap.read()
+				if not ret:
+					return 0, 0
+				original_frame = frame.copy()
+				
+				# 绘制提示词
+				text = "Press 'q' to take a picture!"
+				font = cv2.FONT_HERSHEY_SIMPLEX  # 字体类型
+				font_scale = 1.2                 # 字体大小
+				color = (0, 255, 0)              # 字体颜色 (B, G, R) 格式
+				thickness = 5					 # 字体粗细
+				# 获取文字的尺寸
+				(text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+				# 获取图像的宽高
+				image_height, image_width = frame.shape[:2]
+				# 计算文字的起始坐标
+				x = (image_width - text_width) // 2
+				y = (image_height + text_height) // 8
+				cv2.putText(frame, text, (x, y), font, font_scale, color, thickness)
+
+				cv2.imshow("Camera", frame)
+				# 按 'q' 手动退出，并保存图片
+				if cv2.waitKey(1) & 0xFF == ord('q'): 
+					break
+
+			cap.release()
+			cv2.destroyAllWindows()
+			img = original_frame
+
+		else:
+			img = cv2.imread(car_pic)
 
 		pic_height, pic_width = img.shape[:2]
 		# 限制图片的最大宽度，否则按比例缩小
@@ -454,10 +490,13 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/1.jpg")
-
+	# plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/20.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("camera")
+	# 摄像头出现问题
+	if plate_imgs == 0 and plate_colors == 0:
+		print("请检查摄像头！")
 	# 未成功裁剪车牌
-	if plate_imgs == [] or plate_colors == []:
+	elif plate_imgs == [] or plate_colors == []:
 		print("未检测到车牌，请检查输入图片或尝试更换更清晰的照片！")
 	else:
 		for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
@@ -465,7 +504,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite("./dataset/Plates/10.jpg", plate_img)
+				cv2.imwrite("./dataset/Plates/12.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
