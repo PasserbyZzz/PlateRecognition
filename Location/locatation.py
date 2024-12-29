@@ -352,8 +352,6 @@ class PlatesLocator:
 				xr = col_num
 				need_accurate = True
 			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
-			cv2.imwrite("card.jpg", card_img[yl:yh, xl:xr])
-			cv2.imwrite("card2.jpg", card_img)
 
 			# 可能x或y方向未缩小，需要再试一次
 			if need_accurate: 
@@ -405,7 +403,7 @@ class PlatesLocator:
 		# print(wave_peaks)
 
 		if len(wave_peaks) <= 5:
-			print("无法进行字符分割，请尝试更换更清晰的照片！")
+			# print("无法进行字符分割，请尝试更换更清晰的照片！")
 			return []
 
 		# 判断是否是左侧车牌边缘
@@ -440,7 +438,7 @@ class PlatesLocator:
 				wave_peaks.remove(i)
 
 		if len(wave_peaks) <= 5:
-			print("无法进行字符分割，请尝试更换更清晰的照片！")
+			# print("无法进行字符分割，请尝试更换更清晰的照片！")
 			return []
 
 		part_cards = [gray_img[:, wave[0]:wave[1]] for wave in wave_peaks]
@@ -456,7 +454,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/16.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/1.jpg")
 
 	# 未成功裁剪车牌
 	if plate_imgs == [] or plate_colors == []:
