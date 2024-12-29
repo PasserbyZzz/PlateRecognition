@@ -153,7 +153,7 @@ class PlatesLocator:
 				text = "Press 'q' to take a picture!"
 				font = cv2.FONT_HERSHEY_SIMPLEX  # 字体类型
 				font_scale = 1.2                 # 字体大小
-				color = (0, 255, 0)              # 字体颜色 (B, G, R) 格式
+				color = (85, 164, 79)            # 字体颜色 (B, G, R) 格式
 				thickness = 5					 # 字体粗细
 				# 获取文字的尺寸
 				(text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
