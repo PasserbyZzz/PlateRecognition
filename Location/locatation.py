@@ -86,8 +86,8 @@ class PlatesLocator:
 		row_num_limit = self.cfg["row_num_limit"]
 		# 列像素中符合条件的最少个数
 		# 非绿色车牌：列中有至少 80% 的像素符合条件
-		# 绿色车牌：有渐变效果，列中有至少 50% 的像素符合条件
-		col_num_limit = col_num * 0.8 if color != "green" else col_num * 0.5 
+		# 绿色车牌：有渐变效果，为了不裁去白色部分，选择不裁
+		col_num_limit = col_num * 0.8 if color != "green" else -1
 
 		# 裁剪上下边界
 		for i in range(row_num):
@@ -108,6 +108,7 @@ class PlatesLocator:
 					yl = i
 				if yh < i:
 					yh = i
+
 		# 裁剪左右边界
 		for j in range(col_num):
 			count = 0
@@ -143,7 +144,7 @@ class PlatesLocator:
 		# 限制图片的最大宽度，否则按比例缩小
 		if pic_width > MAX_WIDTH:
 			pic_rate = MAX_WIDTH / pic_width
-			img = cv2.resize(img, (MAX_WIDTH, int(pic_height * pic_rate)), interpolation=cv2.INTER_LANCZOS4)
+			img = cv2.resize(img, (MAX_WIDTH, int(pic_height * pic_rate)), interpolation=cv2.INTER_AREA)
 			pic_height, pic_width = img.shape[:2]
 
 		# 如果指定了缩放比例resize_rate，按比例调整图片的尺寸
@@ -178,7 +179,7 @@ class PlatesLocator:
 
 		# Step3: 边缘检测
 		ret, img_thresh = cv2.threshold(img_opening, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # 二值化
-		img_edge = cv2.Canny(img_thresh, 100, 250) # Canny边缘检测
+		img_edge = cv2.Canny(img_thresh, 100, 200) # Canny边缘检测
 
 		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
@@ -294,7 +295,10 @@ class PlatesLocator:
 		colors = []
 		for card_index, card_img in enumerate(card_imgs):
 			green = blue = 0
-			card_img_hsv = cv2.cvtColor(card_img, cv2.COLOR_BGR2HSV)
+			try:
+				card_img_hsv = cv2.cvtColor(card_img, cv2.COLOR_BGR2HSV)
+			except BaseException:
+				continue
 			# 有转换失败的可能，原因来自于上面矫正矩形出错
 			if card_img_hsv is None:
 				continue
@@ -348,7 +352,9 @@ class PlatesLocator:
 				xr = col_num
 				need_accurate = True
 			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
-			
+			cv2.imwrite("card.jpg", card_img[yl:yh, xl:xr])
+			cv2.imwrite("card2.jpg", card_img)
+
 			# 可能x或y方向未缩小，需要再试一次
 			if need_accurate: 
 				card_img = card_imgs[card_index]
@@ -450,7 +456,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/6.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/16.jpg")
 
 	# 未成功裁剪车牌
 	if plate_imgs == [] or plate_colors == []:
@@ -461,7 +467,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				# cv2.imwrite("./dataset/Plates/7.jpg", plate_img)
+				cv2.imwrite("./dataset/Plates/10.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
