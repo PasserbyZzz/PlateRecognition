@@ -489,7 +489,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/1.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/15.jpg")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -503,7 +503,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				# cv2.imwrite(f"./dataset/Plates/19.jpg", plate_img)
+				cv2.imwrite(f"./dataset/Plates/17.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
