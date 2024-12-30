@@ -176,7 +176,7 @@ class PlatesLocator:
 
 		else:
 			img = cv2.imread(car_pic)
-		cv2.imwrite('img_raw.png', img)
+
 		pic_height, pic_width = img.shape[:2]
 		# 限制图片的最大宽度，否则按比例缩小
 		if pic_width > MAX_WIDTH:
@@ -190,8 +190,6 @@ class PlatesLocator:
 			pic_height, pic_width = img.shape[:2]
 			
 		# print(f"height: {pic_height}, width: {pic_width}")
-
-		
 
 		# Step2: 图像预处理
 		blur = self.cfg["blur"]
@@ -225,7 +223,7 @@ class PlatesLocator:
 		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
 		# 开运算，消除边缘区域中的小噪声
 		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
-		# cv2.imwrite('./figures/img_edge_close_open.png', img_edge2)
+		cv2.imwrite('img_edge_close_open.png', img_edge2)
 
 		# Step4: 轮廓检测
 		# 查找图像边缘整体形成的矩形区域，可能有很多，车牌就在其中一个矩形区域中
@@ -258,11 +256,11 @@ class PlatesLocator:
 			#要求矩形区域长宽比在2到5.5之间，2到5.5是车牌的长宽比，其余的矩形排除
 			if wh_ratio > 2 and wh_ratio < 5.5:
 				car_contours.append(rect)
-				box = cv2.boxPoints(rect)
-				box = np.intp(box)
-				old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
-				cv2.imshow("edge4", old_img)
-				cv2.waitKey(0)
+				# box = cv2.boxPoints(rect)
+				# box = np.intp(box)
+				# old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
+				# cv2.imshow("edge4", old_img)
+				# cv2.waitKey(0)
 		print(f"矩形车牌数量: {len(car_contours)}")
 		# print("精确定位车牌")
 
@@ -498,7 +496,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/10.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/24.jpg")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -512,7 +510,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./dataset/Plates/plate_{index}.jpg", plate_img)
+				cv2.imwrite(f"./dataset/Plates/19.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
