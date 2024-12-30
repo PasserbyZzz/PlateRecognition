@@ -223,7 +223,7 @@ class PlatesLocator:
 		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
 		# 开运算，消除边缘区域中的小噪声
 		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
-		cv2.imwrite('img_edge_close_open.png', img_edge2)
+		# cv2.imwrite('img_edge_close_open.png', img_edge2)
 
 		# Step4: 轮廓检测
 		# 查找图像边缘整体形成的矩形区域，可能有很多，车牌就在其中一个矩形区域中
@@ -259,9 +259,9 @@ class PlatesLocator:
 				# box = cv2.boxPoints(rect)
 				# box = np.intp(box)
 				# old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
-				# cv2.imshow("edge4", old_img)
+				# cv2.imwrite("edge4", old_img)
 				# cv2.waitKey(0)
-		print(f"矩形车牌数量: {len(car_contours)}")
+		# print(f"矩形车牌数量: {len(car_contours)}")
 		# print("精确定位车牌")
 
 		# Step6: 精确定位车牌
@@ -273,13 +273,6 @@ class PlatesLocator:
 				angle = 1
 			else:
 				angle = rect[2]
-
-			# cv2.drawContours(old_img, [cnt], -1, (0, 255, 0), 2)
-			# box = cv2.boxPoints(rect)
-			# box = np.intp(box)
-			# cv2.drawContours(old_img, [box], -1, (255, 0, 0), 2)
-			# cv2.imshow("Contours and Rect", old_img)
-			# cv2.waitKey(0)
 
 			# 扩大范围，避免车牌边缘被排除
 			rect = (rect[0], (rect[1][0]+4, rect[1][1]+4), angle) 
@@ -496,7 +489,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/24.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/1.jpg")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -510,7 +503,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./dataset/Plates/19.jpg", plate_img)
+				# cv2.imwrite(f"./dataset/Plates/19.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
