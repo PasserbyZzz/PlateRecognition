@@ -6,7 +6,8 @@ import os
 import json
 
 MAX_WIDTH = 1000  # 原始图片最大宽度
-Min_Area = 2000   # 车牌区域允许最大面积
+Min_Area = 2000   # 车牌区域允许最小面积
+Max_Area = 9000   # 车牌区域允许最大面积
 
 def point_limit(point):
 	'''
@@ -86,8 +87,8 @@ class PlatesLocator:
 		row_num_limit = self.cfg["row_num_limit"]
 		# 列像素中符合条件的最少个数
 		# 非绿色车牌：列中有至少 80% 的像素符合条件
-		# 绿色车牌：有渐变效果，为了不裁去白色部分，选择不裁
-		col_num_limit = col_num * 0.8 if color != "green" else -1
+		# 绿色车牌：有渐变效果
+		col_num_limit = col_num * 0.8 if color != "green" else col_num * 0.5 
 
 		# 裁剪上下边界
 		for i in range(row_num):
@@ -106,7 +107,7 @@ class PlatesLocator:
 			if count > col_num_limit:
 				if yl > i:
 					yl = i
-				if yh < i:
+				if yh < i and color != 'green': #绿色车牌不裁上边界
 					yh = i
 
 		# 裁剪左右边界
@@ -175,12 +176,12 @@ class PlatesLocator:
 
 		else:
 			img = cv2.imread(car_pic)
-
+		cv2.imwrite('img_raw.png', img)
 		pic_height, pic_width = img.shape[:2]
 		# 限制图片的最大宽度，否则按比例缩小
 		if pic_width > MAX_WIDTH:
 			pic_rate = MAX_WIDTH / pic_width
-			img = cv2.resize(img, (MAX_WIDTH, int(pic_height * pic_rate)), interpolation=cv2.INTER_AREA)
+			img = cv2.resize(img, (MAX_WIDTH, int(pic_height * pic_rate)), interpolation=cv2.INTER_LANCZOS4)
 			pic_height, pic_width = img.shape[:2]
 
 		# 如果指定了缩放比例resize_rate，按比例调整图片的尺寸
@@ -190,7 +191,7 @@ class PlatesLocator:
 			
 		# print(f"height: {pic_height}, width: {pic_width}")
 
-		# cv2.imwrite('./figures/img_raw.png', img)
+		
 
 		# Step2: 图像预处理
 		blur = self.cfg["blur"]
@@ -210,13 +211,12 @@ class PlatesLocator:
 		img_opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
 		# 加权叠加，将两幅图像合成为一幅图像，增强车牌区域的对比度
 		img_opening = cv2.addWeighted(img, 1, img_opening, -1, 0) 
-
+		
 		# cv2.imwrite('./figures/img_opening.png', img_opening)
 
 		# Step3: 边缘检测
-		ret, img_thresh = cv2.threshold(img_opening, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # 二值化
+		ret_, img_thresh = cv2.threshold(img_opening, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # 二值化
 		img_edge = cv2.Canny(img_thresh, 100, 200) # Canny边缘检测
-
 		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
 		# 使用闭运算和开运算让图像边缘成为一个整体
@@ -225,7 +225,6 @@ class PlatesLocator:
 		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
 		# 开运算，消除边缘区域中的小噪声
 		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
-
 		# cv2.imwrite('./figures/img_edge_close_open.png', img_edge2)
 
 		# Step4: 轮廓检测
@@ -242,7 +241,7 @@ class PlatesLocator:
 		except ValueError:
 			image, contours, hierarchy = cv2.findContours(img_edge2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		# 通过面积过滤掉小的轮廓
-		contours = [cnt for cnt in contours if cv2.contourArea(cnt) > Min_Area]
+		contours = [cnt for cnt in contours if  Min_Area < cv2.contourArea(cnt) < Max_Area]
 
 		# print(f"轮廓数量: {len(contours)}")
 
@@ -261,26 +260,31 @@ class PlatesLocator:
 				car_contours.append(rect)
 				box = cv2.boxPoints(rect)
 				box = np.intp(box)
-				#old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
-				#cv2.imshow("edge4", old_img)
-				#cv2.waitKey(0)
-
-		# print(f"矩形车牌数量: {len(car_contours)}")
-
+				old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
+				cv2.imshow("edge4", old_img)
+				cv2.waitKey(0)
+		print(f"矩形车牌数量: {len(car_contours)}")
 		# print("精确定位车牌")
 
 		# Step6: 精确定位车牌
 		card_imgs = []
 		# 矩形区域可能是倾斜的矩形，需要矫正，以便使用颜色定位
 		for rect in car_contours:
-			# 创造角度，使得左、高、右、低拿到正确的值
+			# # 创造角度，使得左、高、右、低拿到正确的值
 			if rect[2] > -1 and rect[2] < 1:
 				angle = 1
 			else:
 				angle = rect[2]
 
+			# cv2.drawContours(old_img, [cnt], -1, (0, 255, 0), 2)
+			# box = cv2.boxPoints(rect)
+			# box = np.intp(box)
+			# cv2.drawContours(old_img, [box], -1, (255, 0, 0), 2)
+			# cv2.imshow("Contours and Rect", old_img)
+			# cv2.waitKey(0)
+
 			# 扩大范围，避免车牌边缘被排除
-			rect = (rect[0], (rect[1][0]+5, rect[1][1]+5), angle) 
+			rect = (rect[0], (rect[1][0]+4, rect[1][1]+4), angle) 
 
 			# 获取矩形的 4 个顶点
 			box = cv2.boxPoints(rect)
@@ -299,6 +303,10 @@ class PlatesLocator:
 			# 正角度
 			if left_point[1] <= right_point[1]: 
 				new_right_point = [right_point[0], heigth_point[1]]
+				if (right_point[0] == heigth_point[0]):
+					card_img = old_img[int(left_point[1]):int(heigth_point[1]), int(left_point[0]):int(new_right_point[0])]
+					card_imgs.append(card_img)
+					continue
 				pts2 = np.float32([left_point, heigth_point, new_right_point]) # 字符只是高度需要改变
 				pts1 = np.float32([left_point, heigth_point, right_point])
 				M = cv2.getAffineTransform(pts1, pts2)
@@ -308,12 +316,14 @@ class PlatesLocator:
 				point_limit(left_point)
 				card_img = dst[int(left_point[1]):int(heigth_point[1]), int(left_point[0]):int(new_right_point[0])]
 				card_imgs.append(card_img)
-				# cv2.imshow("card", card_img)
-				# cv2.waitKey(0)
 
 			# 负角度
 			elif left_point[1] > right_point[1]:
 				new_left_point = [left_point[0], heigth_point[1]]
+				if (left_point[0] == heigth_point[0]):
+					card_img = old_img[int(right_point[1]):int(heigth_point[1]), int(new_left_point[0]):int(right_point[0])]
+					card_imgs.append(card_img)
+					continue
 				pts2 = np.float32([new_left_point, heigth_point, right_point]) # 字符只是高度需要改变
 				pts1 = np.float32([left_point, heigth_point, right_point])
 				M = cv2.getAffineTransform(pts1, pts2)
@@ -323,8 +333,6 @@ class PlatesLocator:
 				point_limit(new_left_point)
 				card_img = dst[int(right_point[1]):int(heigth_point[1]), int(new_left_point[0]):int(right_point[0])]
 				card_imgs.append(card_img)
-				# cv2.imshow("card", card_img)
-				# cv2.waitKey(0)
 
 		# Step7: 确定车牌颜色
 		# 开始使用颜色定位，排除不是车牌的矩形，目前只识别蓝、绿车牌
@@ -490,10 +498,10 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	# plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/20.jpg")
-	plate_imgs, plate_colors = locator.locate_plates("camera")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/10.jpg")
+	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
-	if plate_imgs == 0 and plate_colors == 0:
+	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
 		print("请检查摄像头！")
 	# 未成功裁剪车牌
 	elif plate_imgs == [] or plate_colors == []:
@@ -504,7 +512,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite("./dataset/Plates/12.jpg", plate_img)
+				cv2.imwrite(f"./dataset/Plates/plate_{index}.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
