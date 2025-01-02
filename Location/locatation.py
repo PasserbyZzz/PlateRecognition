@@ -102,7 +102,6 @@ class PlatesLocator:
 				# 判断当前像素是否符合目标颜色
 				if limit1 < H <= limit2 and 34 < S and 46 < V:
 					count += 1
-
 			# 达到列阈值
 			if count > col_num_limit:
 				if yl > i:
@@ -204,7 +203,7 @@ class PlatesLocator:
 		# cv2.imwrite('./figures/img_gauss_gray.png', img)
 
 		# 去掉图像中不会是车牌的区域
-		kernel = np.ones((20, 20), np.uint8)
+		kernel = np.ones((25, 25), np.uint8)
 		# 开运算，去除图片中不相关的小物体
 		img_opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
 		# 加权叠加，将两幅图像合成为一幅图像，增强车牌区域的对比度
@@ -217,13 +216,24 @@ class PlatesLocator:
 		img_edge = cv2.Canny(img_thresh, 100, 200) # Canny边缘检测
 		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
-		# 使用闭运算和开运算让图像边缘成为一个整体
-		kernel = np.ones((self.cfg["morphologyr"], self.cfg["morphologyc"]), np.uint8)
-		# 闭运算，连接边缘中的小缺口
-		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
-		# 开运算，消除边缘区域中的小噪声
-		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
+		kernel_close = np.ones((6, 20), np.uint8)  # 闭运算核（较宽）
+		kernel_open = np.ones((4, 15), np.uint8)   # 开运算核（较小）
+		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel_close)
+		# cv2.imwrite('img_edge_close.png', img_edge1)
+		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel_open)
 		# cv2.imwrite('img_edge_close_open.png', img_edge2)
+
+		# # 使用闭运算和开运算让图像边缘成为一个整体
+		# kernel = np.ones((self.cfg["morphologyr"], self.cfg["morphologyc"]), np.uint8)
+		# # 闭运算，连接边缘中的小缺口
+		# img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel)
+		# # 开运算，消除边缘区域中的小噪声
+		# img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel)
+		# img_edge2 = cv2.morphologyEx(img_edge2, cv2.MORPH_OPEN, kernel)
+		# cv2.imwrite('img_edge_close_open.png', img_edge2)
+
+		# img_edge3 = cv2.morphologyEx(img_edge2, cv2.MORPH_CLOSE, kernel)
+		# cv2.imwrite('img_edge_close_open_2.png', img_edge3)
 
 		# Step4: 轮廓检测
 		# 查找图像边缘整体形成的矩形区域，可能有很多，车牌就在其中一个矩形区域中
@@ -239,7 +249,7 @@ class PlatesLocator:
 		except ValueError:
 			image, contours, hierarchy = cv2.findContours(img_edge2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		# 通过面积过滤掉小的轮廓
-		contours = [cnt for cnt in contours if  Min_Area < cv2.contourArea(cnt) < Max_Area]
+		contours = [cnt for cnt in contours if  Min_Area < cv2.contourArea(cnt)] #< Max_Area]
 
 		# print(f"轮廓数量: {len(contours)}")
 
@@ -259,7 +269,7 @@ class PlatesLocator:
 				# box = cv2.boxPoints(rect)
 				# box = np.intp(box)
 				# old_img = cv2.drawContours(old_img, [box], 0, (0, 0, 255), 2)
-				# cv2.imwrite("edge4", old_img)
+				# cv2.imshow("edge4", old_img)
 				# cv2.waitKey(0)
 		# print(f"矩形车牌数量: {len(car_contours)}")
 		# print("精确定位车牌")
@@ -307,6 +317,8 @@ class PlatesLocator:
 				point_limit(left_point)
 				card_img = dst[int(left_point[1]):int(heigth_point[1]), int(left_point[0]):int(new_right_point[0])]
 				card_imgs.append(card_img)
+				# cv2.imshow("card", card_img)
+				# cv2.waitKey(0)
 
 			# 负角度
 			elif left_point[1] > right_point[1]:
@@ -324,6 +336,8 @@ class PlatesLocator:
 				point_limit(new_left_point)
 				card_img = dst[int(right_point[1]):int(heigth_point[1]), int(new_left_point[0]):int(right_point[0])]
 				card_imgs.append(card_img)
+				# cv2.imshow("card", card_img)
+				# cv2.waitKey(0)
 
 		# Step7: 确定车牌颜色
 		# 开始使用颜色定位，排除不是车牌的矩形，目前只识别蓝、绿车牌
@@ -357,11 +371,11 @@ class PlatesLocator:
 			color = "none"
 			limit1 = limit2 = 0
 
-			if green * 2 >= card_img_count:
+			if green * 2.5 >= card_img_count:
 				color = "green"
 				limit1 = 35
 				limit2 = 99
-			elif blue * 2 >= card_img_count:
+			elif blue * 2.5 >= card_img_count:
 				color = "blue"
 				limit1 = 100
 				limit2 = 124 # 有的图片有色偏偏紫
@@ -402,7 +416,7 @@ class PlatesLocator:
 					xl = 0
 					xr = col_num
 			card_imgs[card_index] = card_img[yl:yh, xl:xr] if color != "green" or yl < (yh-yl)//4 else card_img[yl-(yh-yl)//4:yh, xl:xr]
-    
+
 		# 筛选出颜色为蓝色或者绿色的车牌
 		plate_imgs, plate_colors = [], []
 		for color, card_img in zip(colors, card_imgs):
@@ -489,7 +503,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/15.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/25.jpg")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -503,7 +517,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./dataset/Plates/17.jpg", plate_img)
+				cv2.imwrite(f"./test_of_parameter/morphologyr/25.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)

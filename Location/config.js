@@ -3,8 +3,8 @@
 	{
 		"open":1,
 		"blur":3,
-		"morphologyr":4,
-		"morphologyc":19,
+		"morphologyr":7,
+		"morphologyc":18, 
 		"col_num_limit":10,
 		"row_num_limit":21
 	},
