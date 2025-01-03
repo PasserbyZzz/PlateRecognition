@@ -22,9 +22,8 @@ def delete_images_in_folder(folder_path):
             try:
                 # 删除文件
                 os.remove(file_path)
-                print(f"Deleted: {file_path}")
             except Exception as e:
-                print(f"Error deleting {file_path}: {e}")
+                print()
 
 
 
@@ -192,7 +191,7 @@ if __name__ == "__main__":
     # 获取车牌图像列表和对应的车牌颜色列表
 #############################################################################################################
     ########################这里是整个脚本的输入端口###############################
-    plate_imgs, plate_colors = locator.locate_plates("17.jpg")#################在这里输入
+    plate_imgs, plate_colors = locator.locate_plates("19.jpg")#################在这里输入
     # plate_imgs, plate_colors = locator.locate_plates("camera")
     # 摄像头出现问题
     if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
