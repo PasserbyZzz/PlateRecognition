@@ -131,7 +131,7 @@ class PlatesLocator:
 
 		return xl, xr, yh, yl
 	
-	def locate_plates(self, car_pic, resize_rate=1):
+	def locate_plates(self, car_pic, resize_rate=1, para_type="ORIGIN"):
 		'''
 		主方法，完成车牌检测；
 		输入->car_pic:输入图片的路径; resize_rate:图像的缩放比例，用于控制输入图像的大小
@@ -216,8 +216,15 @@ class PlatesLocator:
 		img_edge = cv2.Canny(img_thresh, 100, 200) # Canny边缘检测
 		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
-		kernel_close = np.ones((6, 20), np.uint8)  # 闭运算核（较宽）
-		kernel_open = np.ones((4, 15), np.uint8)   # 开运算核（较小）
+		if para_type == "ORIGIN":
+			kernel_close = np.ones((6, 20), np.uint8)  # 闭运算核（较宽）
+			kernel_open = np.ones((4, 15), np.uint8)   # 开运算核（较小）
+		elif para_type == "HIGH":
+			kernel_close = np.ones((7, 30), np.uint8)  # 闭运算核（较宽）
+			kernel_open = np.ones((4, 12), np.uint8)   # 开运算核（较小）
+		elif para_type == "LOW":
+			kernel_close = np.ones((4, 10), np.uint8)  # 闭运算核（较宽）
+			kernel_open = np.ones((7, 15), np.uint8)   # 开运算核（较小）
 		img_edge1 = cv2.morphologyEx(img_edge, cv2.MORPH_CLOSE, kernel_close)
 		# cv2.imwrite('img_edge_close.png', img_edge1)
 		img_edge2 = cv2.morphologyEx(img_edge1, cv2.MORPH_OPEN, kernel_open)
@@ -500,7 +507,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/7.jpg")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/6.jpg", para_type="ORIGIN")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -514,7 +521,7 @@ if __name__ == '__main__':
 			if plate_img is not None:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./test_of_parameter/morphologyr/29.jpg", plate_img)
+				cv2.imwrite(f"./dataset/Plates/morphologyr/6.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
