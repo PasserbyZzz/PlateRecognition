@@ -157,10 +157,10 @@ def plot_training_curves(training_losses, training_accuracies, testing_accuracie
 
     plt.figure(figsize=(12, 5))
 
-    # 绘制训练损失
+
     plt.subplot(1, 2, 1)
     plt.plot(epochs, training_losses, 'b-', label='training loss')
-    plt.title('training loss per epoch')
+    plt.title('training loss')
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.legend()
@@ -169,7 +169,7 @@ def plot_training_curves(training_losses, training_accuracies, testing_accuracie
     plt.subplot(1, 2, 2)
     plt.plot(epochs, training_accuracies, 'g-', label='training accuracy')
     plt.plot(epochs, testing_accuracies, 'r-', label='validation accuracy')
-    plt.title('training accuracy per epoch')
+    plt.title('training and test accuracy ')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
     plt.legend()
