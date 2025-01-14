@@ -203,7 +203,12 @@ class PlatesLocator:
 		# cv2.imwrite('./figures/img_gauss_gray.png', img)
 
 		# 去掉图像中不会是车牌的区域
-		kernel = np.ones((25, 25), np.uint8)
+		if para_type == "ORIGIN":
+			kernel = np.ones((20, 20), np.uint8)
+		elif para_type == "HIGH":
+			kernel = np.ones((15, 15), np.uint8)
+		elif para_type == "LOW":
+			kernel = np.ones((25, 25), np.uint8)
 		# 开运算，去除图片中不相关的小物体
 		img_opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
 		# 加权叠加，将两幅图像合成为一幅图像，增强车牌区域的对比度
@@ -217,7 +222,7 @@ class PlatesLocator:
 		# cv2.imwrite('./figures/img_edge.png', img_edge)
 
 		if para_type == "ORIGIN":
-			kernel_close = np.ones((6, 20), np.uint8)  # 闭运算核（较宽）
+			kernel_close = np.ones((4, 20), np.uint8)  # 闭运算核（较宽）
 			kernel_open = np.ones((4, 15), np.uint8)   # 开运算核（较小）
 		elif para_type == "HIGH":
 			kernel_close = np.ones((7, 30), np.uint8)  # 闭运算核（较宽）
@@ -375,7 +380,7 @@ class PlatesLocator:
 			color = "none"
 			limit1 = limit2 = 0
 
-			if green * 2.5 >= card_img_count:
+			if green * 2 >= card_img_count:
 				color = "green"
 				limit1 = 35
 				limit2 = 99
@@ -507,7 +512,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Blue/11.jpg", para_type="ORIGIN")
+	plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/4.jpg", para_type="ORIGIN")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
@@ -521,7 +526,7 @@ if __name__ == '__main__':
 			if plate_img is not None and plate_img.size > 0:
 				# 获取字符列表
 				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./dataset/Plates/morphologyr/11.jpg", plate_img)
+				cv2.imwrite(f"./dataset/Plates/morphologyr/32.jpg", plate_img)
 				# cv2.imshow(f"plate_{index}", plate_img)
 		
 	# cv2.waitKey(0)
