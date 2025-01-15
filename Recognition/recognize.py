@@ -5,7 +5,7 @@ import os
 import torch.nn as nn
 import torch
 import json
-import locatation
+import locate
 import os
 
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     folder_path = "output1"
     delete_images_in_folder(folder_path)
 
-    locator = locatation.PlatesLocator()
+    locator = locate.PlatesLocator()
     # 获取车牌图像列表和对应的车牌颜色列表
 #############################################################################################################
     ########################这里是整个脚本的输入端口###############################

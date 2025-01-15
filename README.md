@@ -43,9 +43,9 @@
     - **imgs**：供README.md使用的图片
     - **Location**
       - **dataset**：测试用数据集
-      - **`locatation.py`**：车牌定位、裁剪、字符分割代码
+      - **`locate.py`**：车牌定位、裁剪、字符分割代码
     - **Recognition**
-      - **`recognition.py`**：字符识别代码
+      - **`recognize.py`**：字符识别代码
     - **TrainModel**
       - **`load_data.py`**：数据预处理加载代码
       - **`LPRNet.py`**：模型构建代码
