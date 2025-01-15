@@ -28,10 +28,10 @@
 3. 搭建**LPRNet**卷积神经网络；
 4. 根据用户需求以及内部函数的接口设计**GUI界面**；
 5. 设计**LOGO**，将所有代码封装，统一打包成exe文件并发行。
-6. 
+
 ## 具体实现
 
-详见 [基于OpenCV和LPRNet的车牌识别系统](https://github.com/PasserbyZzz/PlateRecognition/blob/main/%E5%9F%BA%E4%BA%8EOpenCV%E5%92%8CLPRNet%E7%9A%84%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB%E7%B3%BB%E7%BB%9F.pdf)
+详见 [基于OpenCV和LPRNet的车牌识别系统.pdf](https://github.com/PasserbyZzz/PlateRecognition/blob/main/Report/%E5%9F%BA%E4%BA%8EOpenCV%E5%92%8CLPRNet%E7%9A%84%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB%E7%B3%BB%E7%BB%9F.pdf)
 
 ## 文件目录
 
