@@ -135,7 +135,7 @@ class PlatesLocator:
 		'''
 		主方法，完成车牌检测；
 		输入->car_pic:输入图片的路径; resize_rate:图像的缩放比例，用于控制输入图像的大小
-		输出->plate_imgs:检测到的车牌区域的图像列表; plate_colors:车牌对应的颜色列表
+		输出->plate_imgs:检测到的车牌区域的图像列表; plate_colors:车牌对应的颜色列表; origin_imgs:原始图像
 		'''
 		# Step1: 读取和调整图像
 		if car_pic == "camera":
@@ -175,6 +175,8 @@ class PlatesLocator:
 
 		else:
 			img = cv2.imread(car_pic)
+
+		original_img = img.copy()
 
 		pic_height, pic_width = img.shape[:2]
 		# 限制图片的最大宽度，否则按比例缩小
@@ -433,7 +435,7 @@ class PlatesLocator:
 				plate_imgs.append(card_img)
 				plate_colors.append(color)
 
-		return plate_imgs, plate_colors
+		return original_img, plate_imgs, plate_colors
 	
 	def separate_characters(self, card_img, color="blue"):
 		'''
@@ -512,7 +514,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/4.jpg", para_type="ORIGIN")
+	original_img, plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/4.jpg", para_type="ORIGIN")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
