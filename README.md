@@ -40,6 +40,7 @@
     - **GUI**
       - **`GUI-PyQt5.py`**：GUI界面代码
     - **Icon**：LOGO等图标
+    - **imgs**：供README.md使用的图片
     - **Location**
       - **dataset**：测试用数据集
       - **`locatation.py`**：车牌定位、裁剪、字符分割代码
