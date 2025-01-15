@@ -62,7 +62,7 @@ class PlatesLocator:
 		'''
 		初始化函数:车牌识别的部分参数保存在js中,便于根据图片分辨率做调整
 		'''
-		f = open('config.js')
+		f = open('./Recognition/config.js')
 		j = json.load(f)
 		for c in j["config"]:
 			if c["open"]:
@@ -508,28 +508,3 @@ class PlatesLocator:
 		# 	cv2.imwrite(f'./character_{idx}.jpg', part_card)
 
 		return part_cards
-	
-# 用法示例 README!!!
-if __name__ == '__main__':
-	# 创建对象
-	locator = PlatesLocator()
-	# 获取车牌图像列表和对应的车牌颜色列表
-	original_img, plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/4.jpg", para_type="ORIGIN")
-	# plate_imgs, plate_colors = locator.locate_plates("camera")
-	# 摄像头出现问题
-	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
-		print("请检查摄像头！")
-	# 未成功裁剪车牌
-	elif plate_imgs == [] or plate_colors == []:
-		print("未检测到车牌，请检查输入图片或尝试更换更清晰的照片！")
-	else:
-		for index, (plate_img, plate_color) in enumerate(zip(plate_imgs, plate_colors)):
-			print(f"车牌颜色：{plate_color}")
-			if plate_img is not None and plate_img.size > 0:
-				# 获取字符列表
-				characters = locator.separate_characters(plate_img, color=plate_color) 
-				cv2.imwrite(f"./dataset/Plates/morphologyr/32.jpg", plate_img)
-				# cv2.imshow(f"plate_{index}", plate_img)
-		
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()

@@ -62,7 +62,7 @@ class PlatesLocator:
 		'''
 		初始化函数:车牌识别的部分参数保存在js中,便于根据图片分辨率做调整
 		'''
-		f = open('config.js')
+		f = open('./Location/config.js')
 		j = json.load(f)
 		for c in j["config"]:
 			if c["open"]:
@@ -514,7 +514,7 @@ if __name__ == '__main__':
 	# 创建对象
 	locator = PlatesLocator()
 	# 获取车牌图像列表和对应的车牌颜色列表
-	original_img, plate_imgs, plate_colors = locator.locate_plates("./dataset/Green/4.jpg", para_type="ORIGIN")
+	original_img, plate_imgs, plate_colors = locator.locate_plates("./Location/dataset/Green/4.jpg", para_type="ORIGIN")
 	# plate_imgs, plate_colors = locator.locate_plates("camera")
 	# 摄像头出现问题
 	if type(plate_imgs) == type(0) and type(plate_colors) == type(0):
