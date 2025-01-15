@@ -5,7 +5,7 @@ import os
 import torch.nn as nn
 import torch
 import json
-import locatation
+import locate
 import os
 
 
