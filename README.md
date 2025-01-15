@@ -53,7 +53,7 @@
       - **`train_LPRNet.py`**：模型训练代码
     - **Report**：报告和讲解视频
 
-***注意：***所有代码的运行请以**PlateRecognition**为根目录!
+***注意：*** 所有代码的运行请以**PlateRecognition**为根目录!
 
 ## 使用教程
 
