@@ -317,7 +317,7 @@ class LicensePlateGUI(QMainWindow):
         try:
             # 调用 recognize_license_plate 函数
             output_path = resource_path("output1")
-            model_path = resource_path("Test/Final_LPRNet_model.pth")
+            model_path = resource_path("./GUI/Final_LPRNet_model.pth")
             result = recognize_license_plate(
                 input_source=input_source,
                 output_folder=output_path,

@@ -231,7 +231,7 @@ if __name__ == "__main__":
     print(f"Predicted License Plate Number: {result}")
 
 def recognize_license_plate(input_source, output_folder="output1",
-                           pretrained_model_path="Test/Final_LPRNet_model.pth",
+                           pretrained_model_path="GUI/Final_LPRNet_model.pth",
                            img_size=(94, 24), para="ORIGIN"):
     """
     识别输入图像或摄像头中的车牌号码。
