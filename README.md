@@ -42,6 +42,7 @@
       - **`GUI.py`**：GUI界面代码
     - **Icon**：LOGO等图标
     - **imgs**：供README.md使用的图片
+    - **Labs**：平时作业（可忽略）
     - **Location**
       - **dataset**：测试用数据集
       - **`locate.py`**：车牌定位、裁剪、字符分割代码
