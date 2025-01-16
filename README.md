@@ -45,13 +45,15 @@
     - **Location**
       - **dataset**：测试用数据集
       - **`locate.py`**：车牌定位、裁剪、字符分割代码
+    - **output1**：裁剪后的车牌图像
     - **Recognition**
       - **`recognize.py`**：字符识别代码
+    - **Report**：报告和讲解视频
     - **TrainModel**
       - **`load_data.py`**：数据预处理加载代码
       - **`LPRNet.py`**：模型构建代码
       - **`train_LPRNet.py`**：模型训练代码
-    - **Report**：报告和讲解视频
+    
 
 ***注意：*** 所有代码的运行请以**PlateRecognition**为根目录!
 
