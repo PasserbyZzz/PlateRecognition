@@ -24,7 +24,7 @@
 
 ## 具体实现
 
-详见 [基于OpenCV和LPRNet的车牌识别系统.pdf](https://github.com/PasserbyZzz/PlateRecognition/blob/main/Report/%E5%9F%BA%E4%BA%8EOpenCV%E5%92%8CLPRNet%E7%9A%84%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB%E7%B3%BB%E7%BB%9F.pdf)
+详见 [基于 OpenCV 和 LPRNet 的车牌识别系统.pdf](https://github.com/PasserbyZzz/PlateRecognition/blob/main/Report/%E5%9F%BA%E4%BA%8EOpenCV%E5%92%8CLPRNet%E7%9A%84%E8%BD%A6%E7%89%8C%E8%AF%86%E5%88%AB%E7%B3%BB%E7%BB%9F.pdf)
 
 ## 文件目录
 
