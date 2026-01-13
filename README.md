@@ -1,4 +1,4 @@
-# 基于OpenCV和LPRNet的车牌识别系统
+# 基于 OpenCV 和 LPRNet 的车牌识别系统
 
 ## 简介
 
